@@ -1,0 +1,60 @@
+from django.test import TestCase
+from django.test import Client
+import json
+import unittest
+
+# Create your tests here.
+
+class WarmupTests(unittest.TestCase):
+ 	def setUp(self):
+  		# Users.objects.all().delete() # deletes all items in the database; be careful before testing
+  		self.c = Client()
+  		self.j1 = json.dumps({'username':'jeff','pwd':'1234'})
+  		self.j2 = json.dumps({'username':'jeff','pwd':'abcd'})
+  		self.j3 = json.dumps({'username':'snow','pwd':'1234'})
+  		self.j4 = json.dumps({'username':'snow','pwd':'abcd'})
+
+ 	def index_test(self):
+ 		response = self.c.get('/users/')
+ 		self.assertEqual(response.status_code, 200)
+ 		self.assertEqual(response.content, "Hello, world. You're at the user index.")
+
+	def usernameError_test(self):
+		response = self.c.post('/users/login/', self.j1, content_type="application/json")
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.content, '{"ERR_BAD_CREDENTIALS": -1}')
+		response = self.c.post('/users/login/', self.j3, content_type="application/json")
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.content, '{"ERR_BAD_CREDENTIALS": -1}')
+
+	def add_test(self):
+		response = self.c.post('/users/add', self.j1, content_type="application/json")
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.content, '{"count": 1, "SUCCESS": 1}')
+		response = self.c.post('/users/add', self.j3, content_type="application/json")
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.content, '{"count": 1, "SUCCESS": 1}')
+
+	def passwordError_test(self):
+		response = self.c.post('/users/add', self.j1, content_type="application/json")
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.content, '{"ERR_USER_EXISTS": -2}')
+		response = self.c.post('/users/add', self.j3, content_type="application/json")
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.content, '{"ERR_USER_EXISTS": -2}')
+
+	def login_test(self):
+		response = self.c.post('/users/login/', self.j1, content_type="application/json")
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.content, '{"count": 2, "SUCCESS": 1}')
+		response = self.c.post('/users/login/', self.j3, content_type="application/json")
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.content, '{"count": 2, "SUCCESS": 1}')
+		response = self.c.post('/users/login/', self.j1, content_type="application/json")
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.content, '{"count": 3, "SUCCESS": 1}')
+		response = self.c.post('/users/login/', self.j3, content_type="application/json")
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.content, '{"count": 3, "SUCCESS": 1}')
+
+# Create your tests here.
