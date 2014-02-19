@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, render_to_response
 
 from django.http import HttpResponse
 from django.template import RequestContext, loader
@@ -17,7 +17,7 @@ MAX_PASSWORD_LENGTH = 128 # max length of password
 
 
 def index(request):
-    return HttpResponse("Hello, world. You're at the user index.")
+    return render_to_response('client.html')
 
 # Create your views here.
 def login(request):
